@@ -1,0 +1,75 @@
+# Step 1: Import Libraries
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Step 2: Load Dataset
+# Replace 'path_to_dataset' with the actual path to your dataset
+df = pd.read_csv('path_to_dataset.csv')
+
+# Step 3: Explore and Preprocess Data
+# Display first few rows of the dataset
+print(df.head())
+
+# Check for missing values
+print(df.isnull().sum())
+
+# Fill or drop missing values (if any)
+df.dropna(inplace=True)
+
+# Step 4: Feature Selection
+# Assuming the dataset has columns: 'advertising_cost', 'segment', 'platform', 'previous_sales', 'sales'
+# Convert categorical columns to numerical if necessary using one-hot encoding or label encoding
+df = pd.get_dummies(df, columns=['segment', 'platform'], drop_first=True)
+
+# Define feature variables (X) and target variable (y)
+X = df.drop(['sales'], axis=1)
+y = df['sales']
+
+# Step 5: Split Data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Step 6: Train the Model
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Step 7: Evaluate the Model
+y_pred = model.predict(X_test)
+
+mae = mean_absolute_error(y_test, y_pred)
+mse = mean_squared_error(y_test, y_pred)
+rmse = np.sqrt(mse)
+r2 = r2_score(y_test, y_pred)
+
+print(f'Mean Absolute Error: {mae}')
+print(f'Mean Squared Error: {mse}')
+print(f'Root Mean Squared Error: {rmse}')
+print(f'R-squared: {r2}')
+
+# Plotting the results
+plt.figure(figsize=(10,6))
+plt.scatter(y_test, y_pred)
+plt.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], color='red') # Line representing the perfect prediction
+plt.xlabel('Actual Sales')
+plt.ylabel('Predicted Sales')
+plt.title('Actual vs Predicted Sales')
+plt.show()
+
+# Step 8: Predict Future Sales
+# Example: Predicting sales for new data
+new_data = pd.DataFrame({
+    'advertising_cost': [1500],
+    'previous_sales': [200],
+    'segment_A': [1],  # Example for one-hot encoded segment
+    'platform_Online': [1]  # Example for one-hot encoded platform
+})
+predicted_sales = model.predict(new_data)
+print(f'Predicted Sales: {predicted_sales[0]}')
+
+# Save the model
+import joblib
+joblib.dump(model, 'sales_prediction_model.pkl')
